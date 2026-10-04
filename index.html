@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic English Master Exam & Practice Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0284c7', 600: '#0369a1', 700: '#075985', 900: '#0c4a6e' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .word-badge { transition: all 0.2s ease; }
+        .word-badge:hover { transform: translateY(-1px); }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Academic English Exam Portal</h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Advanced Word Forms, Chart Reports & Text Completion</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Mode Selector Toggle -->
+                <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex items-center">
+                    <button id="mode-practice-btn" onclick="switchMode('practice')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 bg-brand-600 text-white shadow-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-yellow-300"></i> Practice Mode
+                    </button>
+                    <button id="mode-test-btn" onclick="switchMode('test')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all duration-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Test Paper Mode
+                    </button>
+                </div>
+
+                <!-- Test Timer (Hidden by default in Practice mode) -->
+                <div id="timer-container" class="hidden items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-amber-400 font-mono text-sm font-semibold">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="timer-display">45:00</span>
+                </div>
+
+                <!-- Submit Button -->
+                <button onclick="submitExam()" id="main-submit-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> <span class="hidden sm:inline">Finish & View Answers</span><span class="sm:hidden">Submit</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-8 py-4 gap-4">
+        
+        <!-- Sidebar Exercise Navigator -->
+        <aside class="w-64 bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col shrink-0 hidden md:flex overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Exercise Index</span>
+                <span id="total-progress-badge" class="text-xs font-semibold bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full">0/78 Done</span>
+            </div>
+            <nav class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar" id="sidebar-nav">
+                <!-- Navigation Links Populated by JS -->
+            </nav>
+            <div class="p-3 border-t border-slate-100 bg-slate-50/80">
+                <button onclick="resetAll()" class="w-full text-xs text-slate-500 hover:text-rose-600 font-medium py-1.5 border border-slate-200 rounded-lg hover:border-rose-200 transition-colors flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Reset All Answers
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden min-w-0">
+            
+            <!-- Mobile Navigation Bar -->
+            <div class="md:hidden p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2 overflow-x-auto custom-scrollbar">
+                <select id="mobile-nav-select" onchange="scrollToSection(this.value)" class="text-xs font-semibold bg-white border border-slate-300 rounded-lg p-2 w-full text-slate-700 focus:ring-brand-500">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+
+            <!-- Mode Banner Indicator -->
+            <div id="mode-banner" class="bg-blue-50 border-b border-blue-100 px-4 py-2 text-xs text-brand-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-brand-500"></i>
+                    <span id="mode-banner-text"><strong>Practice Mode Active:</strong> Answers are validated instantly. Check your responses as you go!</span>
+                </div>
+                <span id="live-score-pill" class="font-bold bg-white px-2.5 py-0.5 rounded-full border border-brand-200 shadow-xs">Score: 0/78</span>
+            </div>
+
+            <!-- Scrollable Test Content -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-10 custom-scrollbar" id="test-content">
+
+                <!-- SECTION 1: EXERCISE 1 -->
+                <section id="ex1" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3 flex justify-between items-end">
+                        <div>
+                            <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1331 &bull; Part 1</span>
+                            <h2 class="text-lg font-bold text-slate-900">Exercise 1: Parts of Speech Identification</h2>
+                            <p class="text-xs text-slate-500">Identify the part of speech for each academic word (Noun, Verb, Adjective, or Adverb).</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="ex1-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 2: EXERCISE 2 -->
+                <section id="ex2" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1331 &bull; Part 2</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 2: Word Family Choice</h2>
+                        <p class="text-xs text-slate-500">Fill in the blank with the correct form from each given word family.</p>
+                    </div>
+                    <div class="space-y-3" id="ex2-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 3: EXERCISE 3 -->
+                <section id="ex3" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1331 &bull; Part 3</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 3: Word Form Selection</h2>
+                        <p class="text-xs text-slate-500">Select the correct word form in parentheses to complete each sentence.</p>
+                    </div>
+                    <div class="space-y-3" id="ex3-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 4: EXERCISE 4 -->
+                <section id="ex4" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1332 &bull; Part 1</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 4: Suffix Correction</h2>
+                        <p class="text-xs text-slate-500">The underlined words in the image have incorrect suffixes. Type the correct word form.</p>
+                    </div>
+                    <div class="space-y-3" id="ex4-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 5: EXERCISE 5 -->
+                <section id="ex5" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1332 &bull; Part 2</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 5: Academic Vocabulary Fill-in</h2>
+                        <p class="text-xs text-slate-500">Use the target academic words to complete the sentences.</p>
+                        <div class="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 flex flex-wrap gap-2" id="ex5-wordbank">
+                            <!-- Word bank options -->
+                        </div>
+                    </div>
+                    <div class="space-y-3" id="ex5-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 6: EXERCISE 6 -->
+                <section id="ex6" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1332 &bull; Part 3</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 6: Multiple Choice Vocabulary</h2>
+                        <p class="text-xs text-slate-500">Choose the letter of the correct option for each sentence.</p>
+                    </div>
+                    <div class="space-y-4" id="ex6-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 7: EXERCISE 7 -->
+                <section id="ex7" class="scroll-mt-6 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1333 &bull; Sentence Building</span>
+                        <h2 class="text-lg font-bold text-slate-900">Exercise 7: Building Complex Sentences</h2>
+                        <p class="text-xs text-slate-500">Combine the short sentences into one complete, fluent sentence containing a variety of word forms.</p>
+                    </div>
+                    <div class="space-y-4" id="ex7-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 8: CHARTS & REPORTS -->
+                <section id="ex-charts" class="scroll-mt-6 space-y-6">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1334 &bull; Data Reporting</span>
+                        <h2 class="text-lg font-bold text-slate-900">Academic Data Reports & Trend Vocabulary</h2>
+                        <p class="text-xs text-slate-500">Fill in the missing prepositions, verbs, and data reporting phrases based on the table figures.</p>
+                    </div>
+                    <div class="space-y-8" id="ex-charts-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- SECTION 9: READING PASSAGES A & B -->
+                <section id="ex-passages" class="scroll-mt-6 space-y-6">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold text-brand-600 tracking-wider uppercase">IMG 1335 &bull; Vocabulary in Context</span>
+                        <h2 class="text-lg font-bold text-slate-900">Academic Gap-Fill Passages (A & B)</h2>
+                        <p class="text-xs text-slate-500">Complete the passages using the words provided in each context word bank.</p>
+                    </div>
+                    <div class="space-y-8" id="ex-passages-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Final Diagnostics & Evaluation Modal -->
+    <div id="results-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-500 text-white p-2 rounded-xl">
+                        <i class="fa-solid fa-award text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Exam Evaluation & Explanation Report</h3>
+                        <p class="text-xs text-slate-400">Detailed question-by-question diagnostic review</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('results-modal')" class="text-slate-400 hover:text-white text-xl p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Score Summary Cards -->
+            <div class="bg-slate-50 border-b border-slate-200 p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Overall Score</div>
+                    <div id="modal-score-val" class="text-2xl font-bold text-brand-600">0 / 78</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Accuracy Rate</div>
+                    <div id="modal-accuracy-val" class="text-2xl font-bold text-emerald-600">0%</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Correct Count</div>
+                    <div id="modal-correct-val" class="text-2xl font-bold text-slate-800">0</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Mistakes Found</div>
+                    <div id="modal-mistakes-val" class="text-2xl font-bold text-rose-600">0</div>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="px-5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between gap-3 text-xs">
+                <span class="font-semibold text-slate-600">Detailed Explanations:</span>
+                <div class="flex gap-2">
+                    <button onclick="filterResults('all')" id="filter-all-btn" class="px-3 py-1 rounded-lg bg-slate-200 text-slate-800 font-semibold">Show All</button>
+                    <button onclick="filterResults('wrong')" id="filter-wrong-btn" class="px-3 py-1 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-200">Only Mistakes (<span id="wrong-count-badge">0</span>)</button>
+                </div>
+            </div>
+
+            <!-- Scrollable Feedback List -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar" id="modal-explanations-list">
+                <!-- Populated dynamically with feedback blocks -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                <button onclick="closeModal('results-modal')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-xl text-xs transition-colors">
+                    Close & Keep Reviewing
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // App State
+        let currentMode = 'practice'; // 'practice' or 'test'
+        let timerInterval = null;
+        let timeRemaining = 45 * 60; // 45 minutes
+
+        // Full dataset extracted from the 5 worksheet images
+        const examData = {
+            ex1: [
+                { id: "e1_1", word: "1. generation", type: "partOfSpeech", answer: "noun", options: ["noun", "verb", "adjective", "adverb"], exp: "'Generation' ends with '-tion', a standard noun suffix denoting an action or state." },
+                { id: "e1_2", word: "2. verify", type: "partOfSpeech", answer: "verb", options: ["noun", "verb", "adjective", "adverb"], exp: "'Verify' ends with '-fy', a verb suffix meaning 'to make or become'." },
+                { id: "e1_3", word: "3. successful", type: "partOfSpeech", answer: "adjective", options: ["noun", "verb", "adjective", "adverb"], exp: "'Successful' ends with '-ful', an adjective suffix meaning 'full of'." },
+                { id: "e1_4", word: "4. likely", type: "partOfSpeech", answer: "adjective", options: ["noun", "verb", "adjective", "adverb"], exp: "In academic usage, 'likely' is an adjective meaning probable (e.g., 'a likely outcome')." },
+                { id: "e1_5", word: "5. sensitivity", type: "partOfSpeech", answer: "noun", options: ["noun", "verb", "adjective", "adverb"], exp: "'Sensitivity' ends with '-ity', a noun suffix indicating a quality or state." },
+                { id: "e1_6", word: "6. liquefy", type: "partOfSpeech", answer: "verb", options: ["noun", "verb", "adjective", "adverb"], exp: "'Liquefy' ends with '-fy', denoting the action of turning into liquid." },
+                { id: "e1_7", word: "7. dangerous", type: "partOfSpeech", answer: "adjective", options: ["noun", "verb", "adjective", "adverb"], exp: "'Dangerous' ends with '-ous', an adjective suffix meaning 'characterized by'." },
+                { id: "e1_8", word: "8. extremely", type: "partOfSpeech", answer: "adverb", options: ["noun", "verb", "adjective", "adverb"], exp: "'Extremely' ends with '-ly', modifying adjectives or verbs to indicate degree." },
+                { id: "e1_9", word: "9. illness", type: "partOfSpeech", answer: "noun", options: ["noun", "verb", "adjective", "adverb"], exp: "'Illness' ends with '-ness', a noun suffix creating an abstract noun from an adjective." },
+                { id: "e1_10", word: "10. endless", type: "partOfSpeech", answer: "adjective", options: ["noun", "verb", "adjective", "adverb"], exp: "'Endless' ends with '-less', an adjective suffix meaning 'without'." }
+            ],
+
+            ex2: [
+                { id: "e2_1", prompt: "(apology / apologize / apologetic) She decided to ____ for the miscommunication.", answer: "apologize", exp: "An infinitive verb is required following 'decided to' -> 'decided to apologize'." },
+                { id: "e2_2", prompt: "(create / creativity / creative) The new design project requires a high level of ____.", answer: "creativity", exp: "A noun is required following the preposition 'of' -> 'level of creativity'." },
+                { id: "e2_3", prompt: "(cooperate / cooperation / cooperative) The team members were very ____ during the presentation.", answer: "cooperative", exp: "An adjective is required after the linking verb 'were very' -> 'very cooperative'." },
+                { id: "e2_4", prompt: "(destruct / destruction / destructive) The earthquake was highly ____ to the coastal city.", answer: "destructive", exp: "An adjective modifying 'earthquake' is needed after 'was highly' -> 'highly destructive'." },
+                { id: "e2_5", prompt: "(happy / happily / happiness) The children played ____ in the schoolyard.", answer: "happily", exp: "An adverb is required to modify the action verb 'played' -> 'played happily'." },
+                { id: "e2_6", prompt: "(nature / natural / naturally) It is completely ____ to feel nervous before a major performance.", answer: "natural", exp: "An adjective is needed after 'It is completely' -> 'completely natural'." },
+                { id: "e2_7", prompt: "(manage / management / managerial) Effective time ____ is a crucial skill for university students.", answer: "management", exp: "A noun is required to form the compound subject 'time management'." },
+                { id: "e2_8", prompt: "(visual / visualize / visually) Athletes often ____ their success before stepping onto the field.", answer: "visualize", exp: "A main verb is needed following the subject 'Athletes' and adverb 'often'." },
+                { id: "e2_9", prompt: "(confidence / confide / confident) He felt ____ that his research proposal would be accepted.", answer: "confident", exp: "A predicate adjective is required following the sensory verb 'felt'." },
+                { id: "e2_10", prompt: "(populate / population / populated) The government plans to ____ the newly developed rural regions.", answer: "populate", exp: "An infinitive verb form is needed following 'plans to'." }
+            ],
+
+            ex3: [
+                { id: "e3_1", sentence: "1. The instructor used hand gestures to (animation / animate) his lecture.", answer: "animate", exp: "'To animate' acts as the infinitive verb expressing purpose." },
+                { id: "e3_2", sentence: "2. The patient's (cheerfulness / cheerful) significantly improved the mood of the hospital ward.", answer: "cheerfulness", exp: "A noun is needed as the subject head after the possessive 'patient's'." },
+                { id: "e3_3", sentence: "3. Researchers must accurately (classification / classify) the newly discovered marine species.", answer: "classify", exp: "A main verb is needed after modal 'must' and adverb 'accurately'." },
+                { id: "e3_4", sentence: "4. The snake found in the desert is known to be highly (venom / venomous).", answer: "venomous", exp: "An adjective modifying 'snake' is needed after 'highly'." },
+                { id: "e3_5", sentence: "5. That specific type of bird is (rare / rarely) seen in this climate.", answer: "rarely", exp: "An adverb of frequency modifying the passive verb 'seen' is required." },
+                { id: "e3_6", sentence: "6. The city council plans to (legislate / legislation) stricter environmental controls.", answer: "legislate", exp: "An infinitive verb is required following 'plans to'." },
+                { id: "e3_7", sentence: "7. It is important to submit the (original / originally) document rather than a copy.", answer: "original", exp: "An adjective is required to modify the noun 'document'." },
+                { id: "e3_8", sentence: "8. The jury concluded that the defendant was completely (innocence / innocent).", answer: "innocent", exp: "An adjective is needed as the complement after 'was completely'." },
+                { id: "e3_9", sentence: "9. The stranded hikers were in a (desperate / desperation) situation before the rescue team arrived.", answer: "desperate", exp: "An adjective modifying the noun 'situation' is required." },
+                { id: "e3_10", sentence: "10. The new solar panels are much more (efficiency / efficient) than the previous models.", answer: "efficient", exp: "Comparative adjective form is needed following 'much more'." }
+            ],
+
+            ex4: [
+                { id: "e4_1", target: "geography", sentence: "1. The <u class='text-rose-600 font-bold'>geography</u> location of the valley provides a strategic advantage for farming.", answer: ["geographic", "geographical"], exp: "'Location' is a noun; it requires the adjective form 'geographic' or 'geographical'." },
+                { id: "e4_2", target: "carelessness", sentence: "2. The accountant's <u class='text-rose-600 font-bold'>carelessness</u> error caused a delay in the financial report.", answer: ["careless"], exp: "'Error' is a noun; it needs the adjective modifier 'careless' instead of the noun 'carelessness'." },
+                { id: "e4_3", target: "relative", sentence: "3. Albert Einstein's theory of <u class='text-rose-600 font-bold'>relative</u> fundamentally changed modern physics.", answer: ["relativity"], exp: "The preposition 'of' requires the noun form 'relativity' ('theory of relativity')." },
+                { id: "e4_4", target: "darkness", sentence: "4. The heavy storm clouds began to <u class='text-rose-600 font-bold'>darkness</u> the afternoon sky.", answer: ["darken"], exp: "An infinitive verb is required after 'began to' -> 'began to darken'." },
+                { id: "e4_5", target: "peace", sentence: "5. International diplomats worked together to ensure a <u class='text-rose-600 font-bold'>peace</u> resolution to the conflict.", answer: ["peaceful"], exp: "'Resolution' is a noun; it requires the adjective modifier 'peaceful'." },
+                { id: "e4_6", target: "separately", sentence: "6. The two departments operate in completely <u class='text-rose-600 font-bold'>separately</u> buildings.", answer: ["separate"], exp: "'Buildings' is a noun; it requires the adjective 'separate' rather than the adverb 'separately'." },
+                { id: "e4_7", target: "uselessly", sentence: "7. The outdated software became completely <u class='text-rose-600 font-bold'>uselessly</u> after the system upgrade.", answer: ["useless"], exp: "A predicate adjective complement is needed after linking verb 'became' -> 'became useless'." },
+                { id: "e4_8", target: "frightful", sentence: "8. Sudden loud noises can easily <u class='text-rose-600 font-bold'>frightful</u> the animals in the sanctuary.", answer: ["frighten"], exp: "A verb is required after modal verb 'can easily' -> 'can easily frighten'." }
+            ],
+
+            ex5: {
+                words: ["attached", "consistent", "disagreement", "inspiration", "movement", "powerful", "realism", "relation", "revised", "threaten"],
+                items: [
+                    { id: "e5_1", sentence: "1. The breathtaking mountain views provided endless ____ for the landscape painter.", answer: "inspiration", exp: "'Inspiration' fits contextually (artistic painter's motivation)." },
+                    { id: "e5_2", sentence: "2. The historical film was highly praised by critics for its gritty and accurate ____.", answer: "realism", exp: "'Realism' refers to authentic narrative portrayal in cinema." },
+                    { id: "e5_3", sentence: "3. Please review the financial spreadsheet ____ to this email.", answer: "attached", exp: "Participle 'attached' describes email documents." },
+                    { id: "e5_4", sentence: "4. Numerous studies show a strong ____ between a balanced diet and overall physical health.", answer: "relation", exp: "'Relation' or correlation between variables in research." },
+                    { id: "e5_5", sentence: "5. A sudden ____ in the tall grass caught the wildlife photographer's eye.", answer: "movement", exp: "'Movement' indicates motion observed in nature." },
+                    { id: "e5_6", sentence: "6. The board members had a minor ____ regarding the quarterly budget allocation.", answer: "disagreement", exp: "'Disagreement' describes a conflicting opinion during meetings." },
+                    { id: "e5_7", sentence: "7. The chief executive delivered a very ____ and motivating speech to the employees.", answer: "powerful", exp: "'Powerful' is an adjective describing an impactful speech." },
+                    { id: "e5_8", sentence: "8. The author submitted a heavily ____ version of the manuscript to the publisher.", answer: "revised", exp: "'Revised' means edited or altered written work." },
+                    { id: "e5_9", sentence: "9. Rising ocean temperatures continue to ____ the delicate coral reef ecosystems.", answer: "threaten", exp: "Verb 'threaten' denotes posing endangerment to reefs." },
+                    { id: "e5_10", sentence: "10. To master a new skill, it is crucial to maintain a ____ daily practice schedule.", answer: "consistent", exp: "'Consistent' means steady and unwavering routine." }
+                ]
+            },
+
+            ex6: [
+                { id: "e6_1", q: "1. The politician's fiery speech invoked a strong sense of ______ among the citizens.", options: ["a. national", "b. nationalism", "c. nationalist", "d. nationalize"], answer: "b. nationalism", exp: "'Sense of' takes a noun -> 'nationalism'." },
+                { id: "e6_2", q: "2. The remote region is famous for its stunning and challenging ______ terrain.", options: ["a. mountain", "b. mountaineer", "c. mountainous", "d. mountainside"], answer: "c. mountainous", exp: "Modifies noun 'terrain' -> adjective 'mountainous'." },
+                { id: "e6_3", q: "3. After receiving the excellent news, she broke into tears of pure ______.", options: ["a. happy", "b. happier", "c. happily", "d. happiness"], answer: "d. happiness", exp: "Preposition 'of' requires abstract noun 'happiness'." },
+                { id: "e6_4", q: "4. The young student felt incredibly ______ to receive a full academic scholarship.", options: ["a. fortune", "b. fortunate", "c. fortunately", "d. fortuneless"], answer: "b. fortunate", exp: "Sensory verb 'felt' takes adjective 'fortunate'." },
+                { id: "e6_5", q: "5. The military documents were highly ______ and restricted to authorized personnel only.", options: ["a. classify", "b. classification", "c. classified", "d. classifier"], answer: "c. classified", exp: "Adjective form 'classified' means confidential." }
+            ],
+
+            ex7: [
+                { id: "e7_1", prompts: ["a. The nation's political structure eventually collapsed.", "b. The structure was heavily based on communism.", "c. This historic event happened during the late 20th century."], answerKey: ["communism", "collapsed", "20th century"], model: "Heavily based on communism, the nation's political structure eventually collapsed during the late 20th century.", exp: "Combines cause ('based on communism'), main effect ('collapsed'), and time phrase smoothly." },
+                { id: "e7_2", prompts: ["a. The lead scientist conducted a final experiment.", "b. She finally came to realize the fundamental error in her calculations.", "c. This occurred after several frustrating and failed attempts."], answerKey: ["scientist", "experiment", "attempts", "error"], model: "After several frustrating and failed attempts, the lead scientist conducted a final experiment and came to realize the fundamental error in her calculations.", exp: "Conjoins pre-requisite attempts with the breakthrough realization." },
+                { id: "e7_3", prompts: ["a. The marketing agency launched a new advertising campaign.", "b. The campaign was highly creative and engaging.", "c. It successfully captured the attention of the target audience."], answerKey: ["campaign", "creative", "captured", "audience"], model: "The marketing agency launched a creative and engaging advertising campaign that successfully captured the target audience's attention.", exp: "Consolidates descriptive adjectives ('creative and engaging') to modify the campaign object." },
+                { id: "e7_4", prompts: ["a. The new scientific instrument has extreme sensitivity.", "b. It can detect minor changes in the atmospheric pressure.", "c. The researchers installed it in the mountainous region."], answerKey: ["instrument", "installed", "pressure"], model: "Installed in the mountainous region, the new scientific instrument has extreme sensitivity to detect minor atmospheric pressure changes.", exp: "Uses a participial phrase ('Installed in...') to lead into the instrument's features." },
+                { id: "e7_5", prompts: ["a. The debate between the two political parties seemed endless.", "b. They had a strong disagreement over the new healthcare policy.", "c. The citizens grew tired of the lack of progress."], answerKey: ["disagreement", "endless", "progress"], model: "Due to a strong disagreement over healthcare policy, the debate seemed endless, causing citizens to grow tired of the lack of progress.", exp: "Links disagreement as the root cause of citizen exhaustion." },
+                { id: "e7_6", prompts: ["a. The bank clerk needed to verify the customer's identity.", "b. The customer requested a large withdrawal.", "c. The transaction required an original signature."], answerKey: ["verify", "withdrawal", "signature"], model: "To verify the customer's identity for a large withdrawal, the bank clerk required an original signature for the transaction.", exp: "Combines requirements using infinitive purpose clause ('To verify...')." },
+                { id: "e7_7", prompts: ["a. The two separate departments decided to be cooperative.", "b. They worked on a powerful new software program.", "c. The program was extremely efficient."], answerKey: ["cooperative", "software", "efficient"], model: "Working cooperatively on a powerful new software program, the two separate departments created an extremely efficient application.", exp: "Transforms 'cooperative' into adverb 'cooperatively' or participle phrase." },
+                { id: "e7_8", prompts: ["a. The sudden illness spread quickly through the community.", "b. The medical team was desperate to find a cure.", "c. They eventually developed a highly successful vaccine."], answerKey: ["illness", "desperate", "vaccine"], model: "As the sudden illness spread quickly through the community, the desperate medical team eventually developed a highly successful vaccine.", exp: "Uses dependent temporal clause ('As illness spread...') followed by resolution." }
+            ],
+
+            charts: [
+                {
+                    title: "1. Electric Vehicle Sales",
+                    table: "Year | Region A | Region B\n2015 | 10,000 | 5,000\n2020 | 35,000 | 20,000\n2025 | 60,000 | 45,000",
+                    text: "The presented chart <input data-id='ch1_1' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> information <input data-id='ch1_2' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-20 text-center text-xs font-semibold'> electric vehicle sales in Region A and Region B <input data-id='ch1_3' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> 2015 and 2025.<br><br>In 2015, sales in Region A began <input data-id='ch1_4' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> exactly 10,000 units. Over the next five years, these figures climbed steadily <input data-id='ch1_5' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 10,000 <input data-id='ch1_6' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 35,000 units by 2020. Following this initial period, the market expanded significantly, with sales growing <input data-id='ch1_7' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a solid 25,000 units between 2020 and 2025. Ultimately, Region A's numbers surged <input data-id='ch1_8' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a record high of 60,000 vehicles at the end of the timeline. Meanwhile, Region B maintained a consistent upward trajectory alongside Region A, registering a steady growth <input data-id='ch1_9' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 15,000 units during the first half of the decade.",
+                    answers: {
+                        ch1_1: ["compares", "illustrates", "shows", "provides"],
+                        ch1_2: ["on", "about", "regarding"],
+                        ch1_3: ["between"],
+                        ch1_4: ["at"],
+                        ch1_5: ["from"],
+                        ch1_6: ["to"],
+                        ch1_7: ["by"],
+                        ch1_8: ["to"],
+                        ch1_9: ["of"]
+                    },
+                    exp: "Data reporting prepositions: 'began at', 'climbed from X to Y', 'grew by [amount]', 'surged to [peak figure]', 'growth of [amount]'."
+                },
+                {
+                    title: "2. Annual Beverage Consumption",
+                    table: "Year | Coffee (L/capita) | Tea (L/capita)\n2000 | 50 | 30\n2010 | 40 | 60\n2020 | 25 | 80",
+                    text: "The <input data-id='ch2_1' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'> graph demonstrates the data on average coffee and tea consumption <input data-id='ch2_2' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-20 text-center text-xs font-semibold'> a 20-year period.<br><br>In the year 2000, tea consumption began <input data-id='ch2_3' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> exactly 30 liters per capita. Over the subsequent decade, the figure climbed steadily <input data-id='ch2_4' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 30 <input data-id='ch2_5' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 60 liters by 2010. This upward momentum continued, meaning the chart registers a substantial growth <input data-id='ch2_6' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 50 liters for tea across the entire timeframe. Conversely, coffee experienced a downward trend, as its consumption fell <input data-id='ch2_7' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a solid 10 liters between 2000 and 2010. By the end of the timeline in 2020, average coffee drinking plummeted <input data-id='ch2_8' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a record low of 25 liters per person.",
+                    answers: {
+                        ch2_1: ["table", "line", "presented", "given"],
+                        ch2_2: ["over"],
+                        ch2_3: ["at"],
+                        ch2_4: ["from"],
+                        ch2_5: ["to"],
+                        ch2_6: ["of"],
+                        ch2_7: ["by"],
+                        ch2_8: ["to"]
+                    },
+                    exp: "Trends & Prepositions: 'over a timeframe', 'fell by [difference]', 'plummeted to a record low of [final figure]'."
+                },
+                {
+                    title: "3. Renewable Energy Adoption",
+                    table: "Year | Solar Power (%) | Wind Power (%)\n2005 | 5% | 15%\n2015 | 25% | 30%\n2025 | 55% | 40%",
+                    text: "The supplied diagram compares the <input data-id='ch3_1' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> solar and wind power adoption <input data-id='ch3_2' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 2005 <input data-id='ch3_3' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 2025.<br><br>In 2005, reliance on solar energy stood <input data-id='ch3_4' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> exactly 5% of total power generation. Over the next decade, the figure climbed steadily <input data-id='ch3_5' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 5% in 2005 <input data-id='ch3_6' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 25% by 2015. Following this, solar adoption accelerated, meaning the sector successfully expanded its total market presence <input data-id='ch3_7' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a solid 30% over the final ten years. As a result of this rapid acceleration, solar power usage surged <input data-id='ch3_8' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> a record high of 55% at the close of the period. Meanwhile, wind power also experienced a positive, albeit slower, trajectory; the chart registers a substantial growth <input data-id='ch3_9' class='chart-inp border border-slate-300 rounded px-2 py-0.5 w-16 text-center text-xs font-semibold'> 25% over the 20-year duration for wind energy.",
+                    answers: {
+                        ch3_1: ["share of", "level of", "rates of", "trends in", "rate of", "percentage of"],
+                        ch3_2: ["from"],
+                        ch3_3: ["to"],
+                        ch3_4: ["at"],
+                        ch3_5: ["from"],
+                        ch3_6: ["to"],
+                        ch3_7: ["by"],
+                        ch3_8: ["to"],
+                        ch3_9: ["of"]
+                    },
+                    exp: "Academic report phrases: 'stood at X%', 'expanded presence by Y%', 'surged to a record high of Z%'."
+                }
+            ],
+
+            passages: [
+                {
+                    title: "Passage A: Technology in the Workplace",
+                    bank: ["breakthroughs", "collaborative ecosystem", "consistently", "delicate", "dire", "impetus", "inevitable", "inventory", "repetitive", "sophisticated", "tactile"],
+                    html: "In recent years, major scientific <input data-id='pa_1' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-32 text-center text-xs font-semibold'> in technology have changed how people work. These rapid changes give a strong <input data-id='pa_2' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> to many companies to buy <input data-id='pa_3' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-32 text-center text-xs font-semibold'> machines that can do hard tasks automatically. Some people worry that this will cause a <input data-id='pa_4' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-20 text-center text-xs font-semibold'> shortage of jobs for human workers. However, I believe that technology will help humans rather than replace them completely.<br><br>To start with, bringing automation into the workplace does not mean all workers will lose their jobs. Machines can do <input data-id='pa_5' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> tasks <input data-id='pa_6' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> without getting tired or making easy mistakes. For example, instead of spending hours counting products and checking <input data-id='pa_7' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> in a store, workers can do more important tasks, like helping customers or solving problems. In this way, humans and technology create a <input data-id='pa_8' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-44 text-center text-xs font-semibold'> where both sides work together to get better results.<br><br>Furthermore, it is <input data-id='pa_9' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> that machines still have limits. For instance, robots do not have a human sense of touch, so they lack <input data-id='pa_10' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'> feedback when handling fragile or <input data-id='pa_11' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'> objects.",
+                    answers: {
+                        pa_1: ["breakthroughs"],
+                        pa_2: ["impetus"],
+                        pa_3: ["sophisticated"],
+                        pa_4: ["dire"],
+                        pa_5: ["repetitive"],
+                        pa_6: ["consistently"],
+                        pa_7: ["inventory"],
+                        pa_8: ["collaborative ecosystem"],
+                        pa_9: ["inevitable"],
+                        pa_10: ["tactile"],
+                        pa_11: ["delicate"]
+                    },
+                    exp: "Vocabulary Context: 'scientific breakthroughs', 'strong impetus', 'sophisticated machines', 'dire shortage', 'repetitive tasks', 'consistently', 'checking inventory', 'collaborative ecosystem', 'inevitable', 'tactile feedback', 'delicate objects'."
+                },
+                {
+                    title: "Passage B: Technology in Modern Healthcare",
+                    bank: ["assembly-line automation", "breakthroughs", "collaborative ecosystem", "consistently", "delicate", "impetus", "inevitable", "inventory", "master", "tactile"],
+                    html: "In modern hospitals, it is now <input data-id='pb_1' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> that technology will play an important role, as doctors and nurses rely on electronic tools every day to care for patients. For example, surgeons often perform <input data-id='pb_2' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'> operations on tiny blood vessels and sensitive body parts where a small mistake could cause serious harm. During these complex surgeries, doctors rely heavily on their <input data-id='pb_3' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'> sense, using the physical feeling in their fingertips to judge tissue pressure and texture. These human feelings and physical skills are very complex, making them almost impossible for a machine to <input data-id='pb_4' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-24 text-center text-xs font-semibold'>. If hospitals replaced skilled human doctors completely with robots, patients could face dire health risks and dangerous medical mistakes.<br><br>At the same time, machines provide great support when working alongside medical staff. Automated tools can analyze blood samples <input data-id='pb_5' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'>, working continuously for hours without getting tired or making easy errors. They can also keep track of supplies by scanning packages and managing medicine <input data-id='pb_6' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> in storage rooms so that important drugs never run out. Furthermore, by using <input data-id='pb_7' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-44 text-center text-xs font-semibold'> in hospital pharmacies, thousands of medicine orders can be labeled and packed quickly and safely.<br><br>Recent scientific <input data-id='pb_8' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-32 text-center text-xs font-semibold'> in medical research have given hospitals a strong <input data-id='pb_9' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-28 text-center text-xs font-semibold'> to update their systems and modernize patient care... In the end, when smart technology supports human expertise, it creates a <input data-id='pb_10' class='pas-inp border border-slate-300 rounded px-2 py-0.5 w-44 text-center text-xs font-semibold'> where computers and healthcare professionals work together to save more lives.",
+                    answers: {
+                        pb_1: ["inevitable"],
+                        pb_2: ["delicate"],
+                        pb_3: ["tactile"],
+                        pb_4: ["master"],
+                        pb_5: ["consistently"],
+                        pb_6: ["inventory"],
+                        pb_7: ["assembly-line automation"],
+                        pb_8: ["breakthroughs"],
+                        pb_9: ["impetus"],
+                        pb_10: ["collaborative ecosystem"]
+                    },
+                    exp: "Medical context gap fill: 'inevitable', 'delicate operations', 'tactile sense', 'impossible to master', 'consistently', 'medicine inventory', 'assembly-line automation', 'breakthroughs', 'strong impetus', 'collaborative ecosystem'."
+                }
+            ]
+        };
+
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            renderSidebarNav();
+            renderEx1();
+            renderEx2();
+            renderEx3();
+            renderEx4();
+            renderEx5();
+            renderEx6();
+            renderEx7();
+            renderCharts();
+            renderPassages();
+            updateProgressPill();
+        });
+
+        // Navigation Builder
+        const sections = [
+            { id: "ex1", label: "Ex 1: Parts of Speech" },
+            { id: "ex2", label: "Ex 2: Word Families" },
+            { id: "ex3", label: "Ex 3: Word Forms" },
+            { id: "ex4", label: "Ex 4: Suffix Correction" },
+            { id: "ex5", label: "Ex 5: Academic Words" },
+            { id: "ex6", label: "Ex 6: Multiple Choice" },
+            { id: "ex7", label: "Ex 7: Sentence Building" },
+            { id: "ex-charts", label: "Data Reports & Charts" },
+            { id: "ex-passages", label: "Passages A & B" }
+        ];
+
+        function renderSidebarNav() {
+            const nav = document.getElementById('sidebar-nav');
+            const mobileSelect = document.getElementById('mobile-nav-select');
+            nav.innerHTML = '';
+            mobileSelect.innerHTML = '';
+
+            sections.forEach(sec => {
+                const a = document.createElement('a');
+                a.href = `#${sec.id}`;
+                a.className = 'flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors';
+                a.innerHTML = `<span>${sec.label}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>`;
+                nav.appendChild(a);
+
+                const opt = document.createElement('option');
+                opt.value = sec.id;
+                opt.textContent = sec.label;
+                mobileSelect.appendChild(opt);
+            });
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderEx1() {
+            const container = document.getElementById('ex1-container');
+            container.innerHTML = '';
+            examData.ex1.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 hover:border-slate-300 transition-colors";
+                card.innerHTML = `
+                    <span class="font-semibold text-slate-800 text-xs sm:text-sm">${item.word}</span>
+                    <div class="flex items-center gap-2">
+                        <select id="${item.id}" onchange="checkPracticeInput('${item.id}', '${item.answer}')" class="text-xs font-medium border border-slate-300 rounded-lg p-1.5 bg-white text-slate-700 focus:ring-brand-500">
+                            <option value="">-- Part of Speech --</option>
+                            ${item.options.map(o => `<option value="${o}">${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
+                        </select>
+                        <span id="icon-${item.id}" class="text-sm"></span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderEx2() {
+            const container = document.getElementById('ex2-container');
+            container.innerHTML = '';
+            examData.ex2.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs sm:text-sm";
+                div.innerHTML = `
+                    <p class="text-slate-800 font-medium">${item.prompt.replace('____', `<input id="${item.id}" type="text" onblur="checkPracticeInput('${item.id}', '${item.answer}')" class="border border-slate-300 rounded px-2.5 py-1 w-32 font-semibold text-brand-700 focus:border-brand-500 focus:outline-none text-center"> <span id="icon-${item.id}"></span>`)}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderEx3() {
+            const container = document.getElementById('ex3-container');
+            container.innerHTML = '';
+            examData.ex3.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs sm:text-sm";
+                
+                // Parse sentence options inside parentheses
+                const match = item.sentence.match(/\(([^)]+)\)/);
+                if (match) {
+                    const opts = match[1].split('/').map(s => s.trim());
+                    const sentencePart = item.sentence.replace(/\([^)]+\)/, `
+                        <select id="${item.id}" onchange="checkPracticeInput('${item.id}', '${item.answer}')" class="mx-1 border border-slate-300 rounded px-2 py-1 bg-white font-semibold text-brand-700 text-xs">
+                            <option value="">-- Choose --</option>
+                            ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+                        </select>
+                        <span id="icon-${item.id}"></span>
+                    `);
+                    div.innerHTML = `<span class="text-slate-800 font-medium">${sentencePart}</span>`;
+                }
+                container.appendChild(div);
+            });
+        }
+
+        function renderEx4() {
+            const container = document.getElementById('ex4-container');
+            container.innerHTML = '';
+            examData.ex4.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs sm:text-sm";
+                
+                const validAnsStr = JSON.stringify(item.answer);
+                div.innerHTML = `
+                    <p class="text-slate-800 font-medium">${item.sentence}</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 font-semibold">Correction:</span>
+                        <input id="${item.id}" type="text" onblur="checkPracticeInputArray('${item.id}', ${validAnsStr})" class="border border-slate-300 rounded px-2.5 py-1 w-36 font-semibold text-slate-800 text-xs focus:ring-brand-500" placeholder="Type correct form...">
+                        <span id="icon-${item.id}"></span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderEx5() {
+            const wordBank = document.getElementById('ex5-wordbank');
+            wordBank.innerHTML = examData.ex5.words.map(w => `<span class="word-badge bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-semibold shadow-2xs">${w}</span>`).join('');
+
+            const container = document.getElementById('ex5-container');
+            container.innerHTML = '';
+            examData.ex5.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm";
+                div.innerHTML = `
+                    <p class="text-slate-800 font-medium">${item.sentence.replace('____', `<input id="${item.id}" type="text" onblur="checkPracticeInput('${item.id}', '${item.answer}')" class="border border-slate-300 rounded px-2.5 py-1 w-32 text-center font-semibold text-slate-800 text-xs focus:ring-brand-500"> <span id="icon-${item.id}"></span>`)}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderEx6() {
+            const container = document.getElementById('ex6-container');
+            container.innerHTML = '';
+            examData.ex6.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs sm:text-sm";
+                card.innerHTML = `
+                    <p class="font-semibold text-slate-900">${item.q}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="options-${item.id}">
+                        ${item.options.map(opt => `
+                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                                <input type="radio" name="${item.id}" value="${opt}" onchange="checkPracticeInput('${item.id}', '${item.answer}')" class="text-brand-600 focus:ring-brand-500">
+                                <span class="text-slate-700 font-medium">${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <span id="icon-${item.id}"></span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderEx7() {
+            const container = document.getElementById('ex7-container');
+            container.innerHTML = '';
+            examData.ex7.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs sm:text-sm";
+                const validKeys = JSON.stringify(item.answerKey);
+                card.innerHTML = `
+                    <div class="font-semibold text-slate-800">
+                        <span class="text-brand-600 font-bold">${idx + 1}. Short Sentences:</span>
+                        <ul class="list-disc list-inside ml-2 mt-1 space-y-0.5 text-slate-600 font-normal">
+                            ${item.prompts.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-500">Your Combined Sentence:</label>
+                        <textarea id="${item.id}" rows="2" onblur="checkSentenceInput('${item.id}', ${validKeys})" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:ring-brand-500" placeholder="Type your combined sentence here..."></textarea>
+                        <div class="flex items-center justify-between">
+                            <span id="icon-${item.id}"></span>
+                            <button onclick="toggleReference('${item.id}_ref')" class="text-xs text-brand-600 font-semibold hover:underline">
+                                <i class="fa-regular fa-lightbulb"></i> View Reference Model
+                            </button>
+                        </div>
+                        <div id="${item.id}_ref" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 mt-2">
+                            <strong>Reference Sentence:</strong> "${item.model}"
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleReference(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden');
+        }
+
+        function renderCharts() {
+            const container = document.getElementById('ex-charts-container');
+            container.innerHTML = '';
+            examData.charts.forEach(chart => {
+                const card = document.createElement('div');
+                card.className = "p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 text-xs sm:text-sm";
+                
+                // Format Table
+                const rows = chart.table.split('\n');
+                let tableHtml = `<div class="overflow-x-auto"><table class="min-w-full text-xs text-left text-slate-700 bg-white border border-slate-200 rounded-lg overflow-hidden">`;
+                rows.forEach((r, i) => {
+                    const cols = r.split('|').map(c => c.trim());
+                    if (i === 0) {
+                        tableHtml += `<thead class="bg-slate-100 font-bold border-b border-slate-200"><tr>${cols.map(c => `<th class="px-3 py-2">${c}</th>`).join('')}</tr></thead><tbody>`;
+                    } else {
+                        tableHtml += `<tr class="border-b border-slate-100">${cols.map(c => `<td class="px-3 py-1.5">${c}</td>`).join('')}</tr>`;
+                    }
+                });
+                tableHtml += `</tbody></table></div>`;
+
+                card.innerHTML = `
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">${chart.title}</h3>
+                    ${tableHtml}
+                    <div class="leading-relaxed font-medium text-slate-800 bg-white p-4 rounded-xl border border-slate-200">
+                        ${chart.text}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Add listener to chart inputs
+            document.querySelectorAll('.chart-inp').forEach(inp => {
+                const dataId = inp.getAttribute('data-id');
+                inp.addEventListener('blur', () => {
+                    const chartObj = examData.charts.find(c => c.answers[dataId]);
+                    if (chartObj) {
+                        const valid = chartObj.answers[dataId];
+                        checkPracticeInputArray(dataId, valid, inp);
+                    }
+                });
+            });
+        }
+
+        function renderPassages() {
+            const container = document.getElementById('ex-passages-container');
+            container.innerHTML = '';
+            examData.passages.forEach(pas => {
+                const card = document.createElement('div');
+                card.className = "p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 text-xs sm:text-sm";
+                
+                card.innerHTML = `
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">${pas.title}</h3>
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl">
+                        <span class="text-xs font-bold uppercase text-slate-400 block mb-2">Word Bank Options:</span>
+                        <div class="flex flex-wrap gap-2">
+                            ${pas.bank.map(w => `<span class="bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-semibold text-xs">${w}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="leading-relaxed font-medium text-slate-800 bg-white p-4 rounded-xl border border-slate-200">
+                        ${pas.html}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Add listener to passage inputs
+            document.querySelectorAll('.pas-inp').forEach(inp => {
+                const dataId = inp.getAttribute('data-id');
+                inp.addEventListener('blur', () => {
+                    const pasObj = examData.passages.find(p => p.answers[dataId]);
+                    if (pasObj) {
+                        const valid = pasObj.answers[dataId];
+                        checkPracticeInputArray(dataId, valid, inp);
+                    }
+                });
+            });
+        }
+
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            const pracBtn = document.getElementById('mode-practice-btn');
+            const testBtn = document.getElementById('mode-test-btn');
+            const timerBox = document.getElementById('timer-container');
+            const bannerText = document.getElementById('mode-banner-text');
+
+            if (mode === 'practice') {
+                pracBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center gap-1.5";
+                testBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5";
+                timerBox.classList.add('hidden');
+                bannerText.innerHTML = `<strong>Practice Mode Active:</strong> Answers are validated instantly. Check your responses as you go!`;
+                clearInterval(timerInterval);
+            } else {
+                testBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center gap-1.5";
+                pracBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5";
+                timerBox.classList.remove('hidden');
+                timerBox.classList.add('flex');
+                bannerText.innerHTML = `<strong>Test Paper Mode Active:</strong> Instant corrections hidden. Timer is running. Click "Finish & View Answers" when ready.`;
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeRemaining = 45 * 60;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time is up! Submitting your test paper now.");
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60);
+            const s = timeRemaining % 60;
+            document.getElementById('timer-display').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // Real-time input checking in Practice Mode
+        function checkPracticeInput(id, expected) {
+            updateProgressPill();
+            if (currentMode !== 'practice') return;
+
+            let val = "";
+            const el = document.getElementById(id);
+            if (el) {
+                val = el.value.trim().toLowerCase();
+            } else {
+                // Check radio buttons
+                const checked = document.querySelector(`input[name="${id}"]:checked`);
+                if (checked) val = checked.value.trim().toLowerCase();
+            }
+
+            const iconSpan = document.getElementById(`icon-${id}`);
+            if (!val) {
+                if (iconSpan) iconSpan.innerHTML = "";
+                return;
+            }
+
+            if (val === expected.toLowerCase()) {
+                if (iconSpan) iconSpan.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i>`;
+            } else {
+                if (iconSpan) iconSpan.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500" title="Expected: ${expected}"></i>`;
+            }
+        }
+
+        function checkPracticeInputArray(id, validArr, customEl = null) {
+            updateProgressPill();
+            if (currentMode !== 'practice') return;
+
+            const el = customEl || document.getElementById(id);
+            if (!el) return;
+            const val = el.value.trim().toLowerCase();
+            const iconSpan = document.getElementById(`icon-${id}`);
+
+            if (!val) {
+                if (iconSpan) iconSpan.innerHTML = "";
+                el.classList.remove('border-emerald-500', 'border-rose-500');
+                return;
+            }
+
+            const isCorrect = validArr.some(v => v.toLowerCase() === val);
+            if (isCorrect) {
+                if (iconSpan) iconSpan.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i>`;
+                el.classList.add('border-emerald-500');
+                el.classList.remove('border-rose-500');
+            } else {
+                if (iconSpan) iconSpan.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500"></i>`;
+                el.classList.add('border-rose-500');
+                el.classList.remove('border-emerald-500');
+            }
+        }
+
+        function checkSentenceInput(id, keyWords) {
+            updateProgressPill();
+            if (currentMode !== 'practice') return;
+
+            const el = document.getElementById(id);
+            if (!el) return;
+            const val = el.value.trim().toLowerCase();
+            const iconSpan = document.getElementById(`icon-${id}`);
+
+            if (!val) {
+                if (iconSpan) iconSpan.innerHTML = "";
+                return;
+            }
+
+            const containsAllKeys = keyWords.every(k => val.includes(k.toLowerCase()));
+            if (containsAllKeys && val.length > 20) {
+                if (iconSpan) iconSpan.innerHTML = `<span class="text-xs font-bold text-emerald-600 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Great structure!</span>`;
+            } else {
+                if (iconSpan) iconSpan.innerHTML = `<span class="text-xs font-bold text-amber-600 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Make sure to include key ideas.</span>`;
+            }
+        }
+
+        function updateProgressPill() {
+            let filledCount = 0;
+            const inputs = document.querySelectorAll('input[type="text"], textarea, select');
+            inputs.forEach(i => {
+                if (i.value.trim()) filledCount++;
+            });
+            const radios = document.querySelectorAll('input[type="radio"]:checked');
+            filledCount += radios.length;
+
+            const total = 78;
+            document.getElementById('total-progress-badge').textContent = `${Math.min(filledCount, total)}/${total} Filled`;
+            document.getElementById('live-score-pill').textContent = `Progress: ${Math.min(filledCount, total)}/78`;
+        }
+
+        
+        let globalEvaluationResults = [];
+
+        function submitExam() {
+            globalEvaluationResults = [];
+            let totalQuestions = 0;
+            let correctCount = 0;
+
+            // 1. Grade Ex1
+            examData.ex1.forEach(item => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = userVal.toLowerCase() === item.answer.toLowerCase();
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 1: ${item.word}`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 2. Grade Ex2
+            examData.ex2.forEach(item => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = userVal.toLowerCase() === item.answer.toLowerCase();
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 2: ${item.prompt.split('(')[0]}...`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 3. Grade Ex3
+            examData.ex3.forEach(item => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = userVal.toLowerCase() === item.answer.toLowerCase();
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 3: ${item.sentence.substring(0, 45)}...`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 4. Grade Ex4
+            examData.ex4.forEach(item => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = item.answer.some(a => a.toLowerCase() === userVal.toLowerCase());
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 4: Fix "${item.target}"`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer.join(" or "),
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 5. Grade Ex5
+            examData.ex5.items.forEach(item => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = userVal.toLowerCase() === item.answer.toLowerCase();
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 5: ${item.sentence.substring(0, 45)}...`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 6. Grade Ex6
+            examData.ex6.forEach(item => {
+                totalQuestions++;
+                const checked = document.querySelector(`input[name="${item.id}"]:checked`);
+                const userVal = checked ? checked.value.trim() : "";
+                const isCorrect = userVal.toLowerCase() === item.answer.toLowerCase();
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 6: ${item.q.substring(0, 45)}...`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.answer,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 7. Grade Ex7 (Sentence combining)
+            examData.ex7.forEach((item, idx) => {
+                totalQuestions++;
+                const el = document.getElementById(item.id);
+                const userVal = el ? el.value.trim() : "";
+                const isCorrect = item.answerKey.every(k => userVal.toLowerCase().includes(k.toLowerCase())) && userVal.length > 20;
+                if (isCorrect) correctCount++;
+                globalEvaluationResults.push({
+                    qTitle: `Ex 7: Sentence Combination #${idx + 1}`,
+                    userAns: userVal || "(Blank)",
+                    correctAns: item.model,
+                    isCorrect,
+                    exp: item.exp
+                });
+            });
+
+            // 8. Grade Charts
+            examData.charts.forEach(chart => {
+                Object.keys(chart.answers).forEach(dataId => {
+                    totalQuestions++;
+                    const inp = document.querySelector(`[data-id="${dataId}"]`);
+                    const userVal = inp ? inp.value.trim() : "";
+                    const valids = chart.answers[dataId];
+                    const isCorrect = valids.some(v => v.toLowerCase() === userVal.toLowerCase());
+                    if (isCorrect) correctCount++;
+                    globalEvaluationResults.push({
+                        qTitle: `${chart.title} [Blank ID: ${dataId}]`,
+                        userAns: userVal || "(Blank)",
+                        correctAns: valids.join(" / "),
+                        isCorrect,
+                        exp: chart.exp
+                    });
+                });
+            });
+
+            // 9. Grade Passages
+            examData.passages.forEach(pas => {
+                Object.keys(pas.answers).forEach(dataId => {
+                    totalQuestions++;
+                    const inp = document.querySelector(`[data-id="${dataId}"]`);
+                    const userVal = inp ? inp.value.trim() : "";
+                    const valids = pas.answers[dataId];
+                    const isCorrect = valids.some(v => v.toLowerCase() === userVal.toLowerCase());
+                    if (isCorrect) correctCount++;
+                    globalEvaluationResults.push({
+                        qTitle: `${pas.title} [Blank ID: ${dataId}]`,
+                        userAns: userVal || "(Blank)",
+                        correctAns: valids.join(" / "),
+                        isCorrect,
+                        exp: pas.exp
+                    });
+                });
+            });
+
+            // Render Results in Modal
+            const pct = Math.round((correctCount / totalQuestions) * 100);
+            document.getElementById('modal-score-val').textContent = `${correctCount} / ${totalQuestions}`;
+            document.getElementById('modal-accuracy-val').textContent = `${pct}%`;
+            document.getElementById('modal-correct-val').textContent = correctCount;
+            const mistakes = totalQuestions - correctCount;
+            document.getElementById('modal-mistakes-val').textContent = mistakes;
+            document.getElementById('wrong-count-badge').textContent = mistakes;
+
+            renderModalList('all');
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function renderModalList(filter) {
+            const listContainer = document.getElementById('modal-explanations-list');
+            listContainer.innerHTML = '';
+
+            const filtered = filter === 'wrong' ? globalEvaluationResults.filter(r => !r.isCorrect) : globalEvaluationResults;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-10 text-slate-400 font-medium text-sm">No items match the selected filter. Perfect score or no mistakes found!</div>`;
+                return;
+            }
+
+            filtered.forEach(res => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-4 rounded-xl border ${res.isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'} space-y-2 text-xs sm:text-sm`;
+                itemDiv.innerHTML = `
+                    <div class="flex items-center justify-between font-bold">
+                        <span class="${res.isCorrect ? 'text-emerald-800' : 'text-rose-800'}">${res.qTitle}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs ${res.isCorrect ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'}">
+                            ${res.isCorrect ? 'Correct' : 'Incorrect'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                        <div><strong>Your Answer:</strong> <span class="${res.isCorrect ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}">${res.userAns}</span></div>
+                        <div><strong>Correct Answer:</strong> <span class="text-emerald-700 font-semibold">${res.correctAns}</span></div>
+                    </div>
+                    <div class="text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200/80 text-xs mt-1">
+                        <strong class="text-slate-800">Grammar & Context Rule:</strong> ${res.exp}
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+
+        function filterResults(type) {
+            const allBtn = document.getElementById('filter-all-btn');
+            const wrongBtn = document.getElementById('filter-wrong-btn');
+
+            if (type === 'all') {
+                allBtn.className = "px-3 py-1 rounded-lg bg-slate-800 text-white font-semibold";
+                wrongBtn.className = "px-3 py-1 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-200";
+            } else {
+                wrongBtn.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-semibold";
+                allBtn.className = "px-3 py-1 rounded-lg bg-slate-200 text-slate-800 font-semibold";
+            }
+            renderModalList(type);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function resetAll() {
+            if (confirm("Are you sure you want to clear all your answers?")) {
+                document.querySelectorAll('input[type="text"], textarea').forEach(i => i.value = "");
+                document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+                document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+                document.querySelectorAll('[id^="icon-"]').forEach(span => span.innerHTML = "");
+                updateProgressPill();
+            }
+        }
+    </script>
+</body>
+</html>
